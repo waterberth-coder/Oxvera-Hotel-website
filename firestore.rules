@@ -1,0 +1,156 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "waterberth@gmail.com"
+        || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation blueprints
+    function isValidRoom(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 128
+        && data.pricePerNight is number && data.pricePerNight >= 0
+        && data.type is string
+        && data.isAvailable is bool;
+    }
+
+    function isValidBooking(data) {
+      return data.userId == request.auth.uid
+        && data.roomId is string
+        && data.checkIn is string && data.checkIn.size() <= 32
+        && data.checkOut is string && data.checkOut.size() <= 32
+        && data.totalPrice is number && data.totalPrice >= 0
+        && data.status is string
+        && data.guestName is string && data.guestName.size() > 0 && data.guestName.size() <= 128
+        && data.guestEmail is string && data.guestEmail.size() > 0 && data.guestEmail.size() <= 128;
+    }
+
+    function isValidUser(data) {
+      return data.email is string && data.email.size() > 0 && data.email.size() <= 128;
+    }
+
+    function isValidCoupon(data) {
+      return data.code is string && data.code.size() > 0 && data.code.size() <= 32
+        && data.discountType is string
+        && data.value is number && data.value >= 0
+        && data.isActive is bool;
+    }
+
+    function isValidGalleryItem(data) {
+      return data.url is string && data.url.size() > 0
+        && data.category is string;
+    }
+
+    function isValidMenuItem(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 128
+        && data.price is number && data.price >= 0
+        && data.category is string
+        && data.isAvailable is bool;
+    }
+
+    function isValidCarService(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 128
+        && data.pricePerDay is number && data.pricePerDay >= 0;
+    }
+
+    function isValidTestimonial(data) {
+      return data.guestName is string && data.guestName.size() > 0 && data.guestName.size() <= 128
+        && data.rating is int && data.rating >= 1 && data.rating <= 5
+        && data.comment is string && data.comment.size() <= 1000;
+    }
+
+    // Collection match blocks
+
+    // --- Rooms ---
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidRoom(request.resource.data) && isValidId(roomId);
+    }
+
+    // --- Bookings ---
+    match /bookings/{bookingId} {
+      allow create: if isSignedIn() && isValidBooking(request.resource.data) && isValidId(bookingId);
+      allow read, update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // --- Users ---
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && isValidUser(request.resource.data) && isValidId(userId);
+      allow write: if isAdmin();
+    }
+
+    // --- Coupons ---
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidCoupon(request.resource.data) && isValidId(couponId);
+    }
+
+    // --- Gallery ---
+    match /gallery/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidGalleryItem(request.resource.data) && isValidId(itemId);
+    }
+
+    // --- Fine Dining Menu ---
+    match /menu_items/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidMenuItem(request.resource.data) && isValidId(itemId);
+    }
+
+    // --- Spa Services ---
+    match /spa_services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(serviceId);
+    }
+
+    // --- Transit Fleet ---
+    match /fleet_items/{carId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidCarService(request.resource.data) && isValidId(carId);
+    }
+
+    // --- Global Site Content ---
+    match /site_content/{id} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(id);
+    }
+
+    // --- Testimonials ---
+    match /testimonials/{id} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidTestimonial(request.resource.data) && isValidId(id);
+    }
+
+    // --- Settings ---
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(id);
+    }
+  }
+}

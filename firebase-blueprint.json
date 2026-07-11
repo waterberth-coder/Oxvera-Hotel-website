@@ -1,0 +1,206 @@
+{
+  "entities": {
+    "rooms": {
+      "title": "Room",
+      "description": "A luxury hotel room managed in the Property Management System",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "pricePerNight": { "type": "number" },
+        "discountPrice": { "type": "number" },
+        "amenities": { "type": "array", "items": { "type": "string" } },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "capacity": { "type": "integer" },
+        "size": { "type": "string" },
+        "bed": { "type": "string" },
+        "type": { "type": "string", "enum": ["standard", "deluxe", "suite", "penthouse"] },
+        "isAvailable": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "pricePerNight", "type", "isAvailable"]
+    },
+    "bookings": {
+      "title": "Booking",
+      "description": "A reservation made by a guest",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "roomName": { "type": "string" },
+        "checkIn": { "type": "string", "format": "date" },
+        "checkOut": { "type": "string", "format": "date" },
+        "totalPrice": { "type": "number" },
+        "adults": { "type": "integer" },
+        "children": { "type": "integer" },
+        "promoCode": { "type": "string" },
+        "guestName": { "type": "string" },
+        "guestEmail": { "type": "string" },
+        "guestPhone": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled", "completed"] },
+        "paymentIntentId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "roomId", "checkIn", "checkOut", "totalPrice", "status", "guestName", "guestEmail"]
+    },
+    "users": {
+      "title": "User Profile",
+      "description": "Profile data for guests and admins",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email"]
+    },
+    "coupons": {
+      "title": "Coupon",
+      "description": "Promo codes for reservations discount",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "discountType": { "type": "string", "enum": ["percent", "flat"] },
+        "value": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "expiryDate": { "type": "string", "format": "date" }
+      },
+      "required": ["code", "discountType", "value", "isActive"]
+    },
+    "gallery": {
+      "title": "Gallery Item",
+      "description": "Imagery for hotel marketing",
+      "type": "object",
+      "properties": {
+        "url": { "type": "string" },
+        "category": { "type": "string", "enum": ["rooms", "spa", "restaurant", "pool", "gym", "lobby", "bar", "events"] },
+        "title": { "type": "string" },
+        "altText": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["url", "category"]
+    },
+    "menu_items": {
+      "title": "Menu Item",
+      "description": "Item of dining menu",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string", "enum": ["breakfast", "starters", "main", "desserts", "wines", "cocktails"] },
+        "image": { "type": "string" },
+        "isAvailable": { "type": "boolean" }
+      },
+      "required": ["name", "price", "category", "isAvailable"]
+    },
+    "spa_services": {
+      "title": "Spa Service",
+      "description": "Luxury spa treatments and wellness routines",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "duration": { "type": "string" },
+        "image": { "type": "string" }
+      },
+      "required": ["name", "price", "duration"]
+    },
+    "fleet_items": {
+      "title": "Fleet Item",
+      "description": "Luxury vehicles for hire or pickup",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Luxury", "SUV", "Sedan", "Chauffeur"] },
+        "pricePerDay": { "type": "number" },
+        "image": { "type": "string" }
+      },
+      "required": ["name", "pricePerDay"]
+    },
+    "site_content": {
+      "title": "Site Content",
+      "description": "Website copy and editorial content",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "image": { "type": "string" },
+        "paragraphs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "testimonials": {
+      "title": "Testimonial",
+      "description": "Guest reviews from Google/Booking.com",
+      "type": "object",
+      "properties": {
+        "guestName": { "type": "string" },
+        "rating": { "type": "integer" },
+        "comment": { "type": "string" },
+        "source": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["guestName", "rating", "comment"]
+    },
+    "settings": {
+      "title": "Hotel Settings",
+      "description": "General system content configurations",
+      "type": "object",
+      "properties": {
+        "heroSlides": { "type": "array" },
+        "philosophy": { "type": "object" },
+        "facilitiesStatus": { "type": "object" }
+      }
+    }
+  },
+  "firestore": {
+    "/rooms/{roomId}": {
+      "schema": "rooms",
+      "description": "Luxury suites and rooms"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "bookings",
+      "description": "Guest reservations"
+    },
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "Guest profiles and role assignments"
+    },
+    "/coupons/{couponId}": {
+      "schema": "coupons",
+      "description": "Active promotional codes"
+    },
+    "/gallery/{itemId}": {
+      "schema": "gallery",
+      "description": "Imagery database"
+    },
+    "/menu_items/{itemId}": {
+      "schema": "menu_items",
+      "description": "Fine dining menu items"
+    },
+    "/spa_services/{serviceId}": {
+      "schema": "spa_services",
+      "description": "Luxury spa treatments"
+    },
+    "/fleet_items/{carId}": {
+      "schema": "fleet_items",
+      "description": "Fleet of luxury vehicles"
+    },
+    "/site_content/{contentId}": {
+      "schema": "site_content",
+      "description": "Global website copies and configurations"
+    },
+    "/testimonials/{id}": {
+      "schema": "testimonials",
+      "description": "Verified guest reviews"
+    },
+    "/settings/{id}": {
+      "schema": "settings",
+      "description": "Global custom layouts and config sliders"
+    }
+  }
+}

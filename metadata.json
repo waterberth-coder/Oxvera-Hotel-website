@@ -1,0 +1,8 @@
+{
+  "name": "Oxvera Hotel",
+  "description": "A professional hotel management and booking platform for Oxvera Hotel, featuring luxury room showcases, automated booking, and secure integrated payments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
