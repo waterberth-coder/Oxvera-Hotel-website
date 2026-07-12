@@ -155,6 +155,22 @@
         "philosophy": { "type": "object" },
         "facilitiesStatus": { "type": "object" }
       }
+    },
+    "blogs": {
+      "title": "Blog Post",
+      "description": "Editorial and lifestyle blog posts about the hotel and region",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "content": { "type": "string" },
+        "image": { "type": "string" },
+        "readTime": { "type": "string" },
+        "date": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "excerpt", "content", "createdAt"]
     }
   },
   "firestore": {
@@ -201,6 +217,10 @@
     "/settings/{id}": {
       "schema": "settings",
       "description": "Global custom layouts and config sliders"
+    },
+    "/blogs/{blogId}": {
+      "schema": "blogs",
+      "description": "Editorial and lifestyle blog posts"
     }
   }
 }

@@ -1,10 +1,37 @@
-import React, { useState } from 'react';
-import { X, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Eye, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { INITIAL_GALLERY } from '../constants/initialData';
+import { db } from '../lib/firebase';
+import { collection, onSnapshot, query } from 'firebase/firestore';
+import { GalleryItem } from '../types';
 
 export default function GallerySection() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'gallery'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const items = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as GalleryItem[];
+        setGalleryItems(items);
+      } else {
+        setGalleryItems(INITIAL_GALLERY);
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error("Failed to load gallery items from Firestore:", error);
+      setGalleryItems(INITIAL_GALLERY);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const categories = [
     { label: 'All', value: 'all' },
@@ -19,11 +46,11 @@ export default function GallerySection() {
   ];
 
   const filteredItems = activeCategory === 'all'
-    ? INITIAL_GALLERY
-    : INITIAL_GALLERY.filter(item => item.category === activeCategory);
+    ? galleryItems
+    : galleryItems.filter(item => item.category === activeCategory);
 
   const openLightbox = (url: string) => {
-    const idx = INITIAL_GALLERY.findIndex(item => item.url === url);
+    const idx = galleryItems.findIndex(item => item.url === url);
     if (idx !== -1) {
       setLightboxIndex(idx);
     }
@@ -35,15 +62,15 @@ export default function GallerySection() {
 
   const handleLightboxPrev = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (lightboxIndex !== null) {
-      setLightboxIndex((prev) => (prev! - 1 + INITIAL_GALLERY.length) % INITIAL_GALLERY.length);
+    if (lightboxIndex !== null && galleryItems.length > 0) {
+      setLightboxIndex((prev) => (prev! - 1 + galleryItems.length) % galleryItems.length);
     }
   };
 
   const handleLightboxNext = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (lightboxIndex !== null) {
-      setLightboxIndex((prev) => (prev! + 1) % INITIAL_GALLERY.length);
+    if (lightboxIndex !== null && galleryItems.length > 0) {
+      setLightboxIndex((prev) => (prev! + 1) % galleryItems.length);
     }
   };
 
@@ -102,7 +129,7 @@ export default function GallerySection() {
       </div>
 
       {/* Fullscreen Lightbox Modal */}
-      {lightboxIndex !== null && (
+      {lightboxIndex !== null && galleryItems.length > 0 && galleryItems[lightboxIndex] && (
         <div
           onClick={closeLightbox}
           className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-center items-center p-4 animate-fade-in cursor-zoom-out"
@@ -110,8 +137,8 @@ export default function GallerySection() {
           {/* Top Bar controls */}
           <div className="absolute top-6 left-6 right-6 flex justify-between items-center text-white select-none">
             <span className="text-xs font-mono">
-              {lightboxIndex + 1} / {INITIAL_GALLERY.length} -{' '}
-              <span className="text-gold-500 uppercase font-bold">{INITIAL_GALLERY[lightboxIndex].category}</span>
+              {lightboxIndex + 1} / {galleryItems.length} -{' '}
+              <span className="text-gold-500 uppercase font-bold">{galleryItems[lightboxIndex].category}</span>
             </span>
             <button
               onClick={closeLightbox}
@@ -132,14 +159,14 @@ export default function GallerySection() {
           {/* Image */}
           <div className="max-w-4xl max-h-[75vh] relative flex flex-col items-center">
             <img
-              src={INITIAL_GALLERY[lightboxIndex].url}
-              alt={INITIAL_GALLERY[lightboxIndex].altText}
+              src={galleryItems[lightboxIndex].url}
+              alt={galleryItems[lightboxIndex].altText}
               className="max-w-full max-h-[70vh] object-contain rounded border border-gold-500/10 shadow-2xl"
               referrerPolicy="no-referrer"
             />
             <div className="text-center mt-4 px-6 max-w-xl">
-              <h3 className="text-lg font-serif text-white">{INITIAL_GALLERY[lightboxIndex].title}</h3>
-              <p className="text-xs text-gray-400 mt-1">{INITIAL_GALLERY[lightboxIndex].altText}</p>
+              <h3 className="text-lg font-serif text-white">{galleryItems[lightboxIndex].title}</h3>
+              <p className="text-xs text-gray-400 mt-1">{galleryItems[lightboxIndex].altText}</p>
             </div>
           </div>
 

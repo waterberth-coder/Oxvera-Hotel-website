@@ -1,0 +1,25 @@
+# Render blueprint deployment file for Oxvera Hotel
+# Click "New +" on Render, choose "Blueprint", and connect your repository to deploy instantly.
+services:
+  - type: web
+    name: oxvera-hotel
+    runtime: node
+    buildCommand: npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: GEMINI_API_KEY
+        sync: false
+        description: "Your Google Gemini API Key for hotel intelligence features (optional)"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+        description: "Your Stripe secret API key for processing hotel bookings (optional)"
+      - key: VITE_STRIPE_PUBLIC_KEY
+        sync: false
+        description: "Your Stripe public API key for the booking form (optional)"
+      - key: APP_URL
+        sync: false
+        description: "The live URL of your deployed application (e.g. https://yourdomain.com)"

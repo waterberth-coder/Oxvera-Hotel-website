@@ -47,9 +47,9 @@ export default function Navbar({ onNavigate, currentView, user, currency, onCurr
   const menuItems = [
     { label: 'HOME', value: 'home' },
     { label: 'ROOMS', value: 'rooms' },
-    { label: 'ABOUT US', value: 'about' },
-    { label: 'CAR SERVICES', value: 'cars' },
-    { label: 'SPA & WELLNESS', value: 'spa' },
+    { label: 'ABOUT', value: 'about' },
+    { label: 'FLEET', value: 'cars' },
+    { label: 'SPA', value: 'spa' },
     { label: 'DINING', value: 'dining' },
     { label: 'EVENTS', value: 'events' },
     { label: 'GALLERY', value: 'gallery' },
@@ -96,7 +96,7 @@ export default function Navbar({ onNavigate, currentView, user, currency, onCurr
           </div>
 
           {/* Desktop Nav Items */}
-          <div className="hidden lg:flex items-center gap-2 xl:gap-4 2xl:gap-5 text-[10px] xl:text-[11px] font-bold tracking-wider xl:tracking-widest text-gray-300">
+          <div className="hidden lg:flex items-center gap-1.5 xl:gap-3 2xl:gap-5 text-[9px] xl:text-[10px] 2xl:text-xs font-bold tracking-wider xl:tracking-widest text-gray-300">
             {menuItems.map((item) => (
               <button
                 key={item.value}
@@ -114,23 +114,22 @@ export default function Navbar({ onNavigate, currentView, user, currency, onCurr
           </div>
 
           {/* Contact / Auth / CTA Section */}
-          <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
+          <div className="hidden lg:flex items-center gap-1.5 xl:gap-3 shrink-0">
             <a
               href="tel:+234800000000"
-              className="text-gray-300 hover:text-gold-500 transition-colors flex items-center gap-1 text-[10px] xl:text-xs font-mono tracking-wider shrink-0"
+              className="text-gray-300 hover:text-gold-500 transition-colors flex items-center gap-1 text-[9px] xl:text-[11px] font-mono tracking-wider shrink-0 hidden xl:flex"
             >
               <Phone className="w-3.5 h-3.5 text-gold-500" />
-              <span className="hidden xl:inline">+234 80 OXVERA</span>
-              <span className="xl:hidden">Call</span>
+              <span>+234 80 OXVERA</span>
             </a>
 
             {/* Currency Selector */}
-            <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 rounded px-1.5 xl:px-2 py-1 text-[10px] xl:text-[11px] font-medium text-gray-300 hover:border-gold-500/40 transition-colors">
-              <Globe className="w-3.5 h-3.5 text-gold-500" />
+            <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 rounded px-1 py-0.5 xl:px-2 xl:py-1 text-[9px] xl:text-[11px] font-medium text-gray-300 hover:border-gold-500/40 transition-colors">
+              <Globe className="w-3 h-3 xl:w-3.5 xl:h-3.5 text-gold-500" />
               <select
                 value={currency}
                 onChange={(e) => onCurrencyChange(e.target.value as CurrencyType)}
-                className="bg-transparent border-none text-white font-semibold outline-none cursor-pointer pr-1 font-sans focus:ring-0 text-[10px] xl:text-xs"
+                className="bg-transparent border-none text-white font-semibold outline-none cursor-pointer pr-1 font-sans focus:ring-0 text-[9px] xl:text-[11px]"
               >
                 <option value="NGN" className="bg-neutral-950 text-white">₦ NGN</option>
                 <option value="USD" className="bg-neutral-950 text-white">$ USD</option>

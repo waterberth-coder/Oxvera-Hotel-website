@@ -7,8 +7,8 @@ import {
 } from 'lucide-react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Room, Booking, Coupon, MenuItem, CarService } from '../types';
-import { INITIAL_ROOMS, INITIAL_MENU, INITIAL_FLEET } from '../constants/initialData';
+import { Room, Booking, Coupon, MenuItem, CarService, GalleryItem } from '../types';
+import { INITIAL_ROOMS, INITIAL_MENU, INITIAL_FLEET, INITIAL_GALLERY } from '../constants/initialData';
 import { DEFAULT_SPA_SERVICES, SpaService } from '../constants/defaultSpaServices';
 import ImageUploader from './ImageUploader';
 
@@ -166,6 +166,16 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     logoUrl?: string;
     heroSlides?: any[];
   }>({});
+
+  // Gallery Management States
+  const [galleryItemsAdmin, setGalleryItemsAdmin] = useState<GalleryItem[]>([]);
+  const [newGalleryItem, setNewGalleryItem] = useState<Partial<GalleryItem>>({
+    url: '',
+    category: 'lobby',
+    title: '',
+    altText: ''
+  });
+  const [addingGalleryItem, setAddingGalleryItem] = useState(false);
 
   const [diningCoverUrl, setDiningCoverUrl] = useState("https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=1200");
   const [spaCoverUrl, setSpaCoverUrl] = useState("https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=1200");
@@ -380,6 +390,14 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           setBlogsAdmin([]);
         }
 
+        // Fetch Gallery Items
+        const gSnapshot = await getDocs(collection(db, 'gallery'));
+        if (!gSnapshot.empty) {
+          setGalleryItemsAdmin(gSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GalleryItem)));
+        } else {
+          setGalleryItemsAdmin(INITIAL_GALLERY);
+        }
+
         // Fetch Global Settings
         const settingsDoc = await getDoc(doc(db, 'settings', 'global'));
         if (settingsDoc.exists()) {
@@ -408,6 +426,50 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     }
     loadPMSData();
   }, []);
+
+  // Gallery actions
+  const handleAddGalleryItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGalleryItem.url) {
+      alert("Please upload or provide an image URL first.");
+      return;
+    }
+    setAddingGalleryItem(true);
+    try {
+      const itemData = {
+        url: newGalleryItem.url,
+        category: newGalleryItem.category || 'lobby',
+        title: newGalleryItem.title || 'Oxvera Experience',
+        altText: newGalleryItem.altText || 'Oxvera Hotel luxury space'
+      };
+      const docRef = await addDoc(collection(db, 'gallery'), itemData);
+      setGalleryItemsAdmin(prev => [...prev, { id: docRef.id, ...itemData } as GalleryItem]);
+      setNewGalleryItem({
+        url: '',
+        category: 'lobby',
+        title: '',
+        altText: ''
+      });
+      alert('Gallery item successfully added.');
+    } catch (err) {
+      console.error("Error adding gallery item:", err);
+      alert('Error adding gallery item to Firestore.');
+    } finally {
+      setAddingGalleryItem(false);
+    }
+  };
+
+  const handleDeleteGalleryItem = async (itemId: string) => {
+    if (!window.confirm("Are you sure you want to delete this image from the gallery?")) return;
+    try {
+      await deleteDoc(doc(db, 'gallery', itemId));
+      setGalleryItemsAdmin(prev => prev.filter(item => item.id !== itemId));
+      alert('Gallery item successfully deleted.');
+    } catch (err) {
+      console.error("Error deleting gallery item:", err);
+      alert('Error deleting gallery item.');
+    }
+  };
 
   // CRUD Room actions
   const handleCreateRoom = async (e: React.FormEvent) => {
@@ -2221,6 +2283,128 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                                 folder="cars" 
                                 onChange={(url) => handleUpdateCarImage(car.id!, url)} 
                               />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* THE OXVERA EXPERIENCE GALLERY IMAGE MANAGEMENT CARD */}
+                <div className="bg-neutral-900 p-6 rounded border border-neutral-800 space-y-6">
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 bg-gold-500/10 text-gold-500 rounded border border-gold-500/20">
+                      <ImageIcon className="w-5 h-5" />
+                    </span>
+                    <div>
+                      <span className="text-[9px] font-mono text-gold-500 uppercase tracking-widest block">Portfolio Images</span>
+                      <h3 className="text-lg font-serif text-white">The Oxvera Experience Gallery</h3>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Add Gallery Item Form */}
+                    <form onSubmit={handleAddGalleryItem} className="lg:col-span-5 p-4 bg-neutral-950 rounded border border-neutral-800 space-y-4">
+                      <h4 className="text-xs font-bold text-gold-500 uppercase tracking-wider">Add Gallery Image</h4>
+                      
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-mono text-gold-500 uppercase font-bold">Image Title</label>
+                        <input 
+                          type="text" 
+                          value={newGalleryItem.title || ''} 
+                          onChange={(e) => setNewGalleryItem(prev => ({ ...prev, title: e.target.value }))}
+                          placeholder="e.g. Imperial Grand Lobby"
+                          className="w-full bg-neutral-900 border border-neutral-800 p-2 text-xs rounded text-white"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-mono text-gold-500 uppercase font-bold">Alt Text / Description</label>
+                        <input 
+                          type="text" 
+                          value={newGalleryItem.altText || ''} 
+                          onChange={(e) => setNewGalleryItem(prev => ({ ...prev, altText: e.target.value }))}
+                          placeholder="e.g. Oxvera Hotel main reception lobby..."
+                          className="w-full bg-neutral-900 border border-neutral-800 p-2 text-xs rounded text-white"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-mono text-gold-500 uppercase font-bold">Gallery Category</label>
+                        <select
+                          value={newGalleryItem.category || 'lobby'}
+                          onChange={(e) => setNewGalleryItem(prev => ({ ...prev, category: e.target.value as any }))}
+                          className="w-full bg-neutral-900 border border-neutral-800 p-2 text-xs rounded text-white outline-none"
+                        >
+                          <option value="lobby">Lobby</option>
+                          <option value="rooms">Suites / Rooms</option>
+                          <option value="restaurant">Dining / Restaurant</option>
+                          <option value="spa">Wellness Spa</option>
+                          <option value="pool">Heated Pool</option>
+                          <option value="bar">Obsidian Bar</option>
+                          <option value="events">Grand Ballroom</option>
+                          <option value="gym">Fitness Center</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-mono text-gold-500 uppercase font-bold">Gallery Image Upload</label>
+                        <ImageUploader 
+                          value={newGalleryItem.url || ''} 
+                          folder="gallery" 
+                          onChange={(url) => setNewGalleryItem(prev => ({ ...prev, url }))} 
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={addingGalleryItem || !newGalleryItem.url}
+                        className="w-full py-2.5 bg-gold-500 hover:bg-gold-600 active:bg-gold-700 disabled:opacity-50 disabled:cursor-not-allowed text-neutral-950 font-bold text-xs uppercase tracking-widest rounded transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        {addingGalleryItem ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Saving Image...</span>
+                          </>
+                        ) : (
+                          <span>Publish to Hotel Gallery</span>
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Manage Gallery Items */}
+                    <div className="lg:col-span-7 space-y-4">
+                      <h4 className="text-xs font-bold text-gold-500 uppercase tracking-wider">Current Gallery Portfolio ({galleryItemsAdmin.length})</h4>
+                      
+                      {galleryItemsAdmin.length === 0 ? (
+                        <p className="text-xs text-gray-500 font-mono py-12 text-center bg-neutral-950 rounded border border-neutral-800">No images published in hotel portfolio</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 text-left">
+                          {galleryItemsAdmin.map((item) => (
+                            <div key={item.id} className="p-3 bg-neutral-950 rounded border border-neutral-800 flex gap-3 relative group">
+                              <img 
+                                src={item.url} 
+                                alt={item.altText} 
+                                className="w-20 h-16 object-cover rounded border border-neutral-800 shrink-0"
+                                referrerPolicy="no-referrer"
+                              />
+                              <div className="min-w-0 flex-1 flex flex-col justify-between py-0.5">
+                                <div>
+                                  <span className="text-[8px] font-mono bg-gold-500/5 text-gold-500 border border-gold-500/10 px-1.5 py-0.5 rounded uppercase">{item.category}</span>
+                                  <h4 className="text-xs font-bold text-white mt-1.5 truncate">{item.title}</h4>
+                                  <p className="text-[9px] text-gray-400 truncate mt-0.5">{item.altText}</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteGalleryItem(item.id)}
+                                  className="text-[9px] text-red-400 hover:text-red-300 transition-colors uppercase font-mono tracking-wider flex items-center gap-1 mt-2 cursor-pointer self-start"
+                                >
+                                  <Trash2 className="w-3 h-3" /> Remove
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
