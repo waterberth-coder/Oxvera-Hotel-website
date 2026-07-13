@@ -29,7 +29,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <a href="#amenities" className="text-sm uppercase tracking-widest hover:text-gold-600 transition-colors">Amenities</a>
               {user ? (
                 <div className="flex items-center gap-4 border-l border-gold-200 pl-8">
-                  <img src={user.photoURL || ''} alt="" className="w-8 h-8 rounded-full border border-gold-300" referrerPolicy="no-referrer" />
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border border-gold-300" referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gold-900 text-gold-50 flex items-center justify-center text-xs border border-gold-300 font-serif font-bold">
+                      {user.displayName?.[0] || 'U'}
+                    </div>
+                  )}
                   <button 
                     onClick={logout}
                     className="text-xs uppercase tracking-widest flex items-center gap-2 hover:text-red-600 transition-colors"

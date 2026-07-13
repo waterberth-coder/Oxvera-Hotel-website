@@ -173,7 +173,7 @@ export default function ServiceViews({ view, onBookNow, currency }: ServiceViews
       <div className="pb-24 bg-neutral-950 text-white min-h-screen animate-fade-in">
         {/* Banner Hero Cover */}
         <div className="relative h-[40vh] min-h-[300px] w-full mb-12">
-          <img src={diningCover} alt="Dining Banner Cover" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={diningCover || null} alt="Dining Banner Cover" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-900/45 to-black/60" />
           <div className="absolute inset-0 flex flex-col justify-end pb-8 text-center px-4">
             <span className="text-xs font-bold tracking-[0.25em] text-gold-500 uppercase block mb-3 animate-fade-in">Michelin Afro-Fusion</span>
@@ -263,7 +263,7 @@ export default function ServiceViews({ view, onBookNow, currency }: ServiceViews
       <div className="pb-24 bg-neutral-950 text-white min-h-screen animate-fade-in">
         {/* Banner Hero Cover */}
         <div className="relative h-[40vh] min-h-[300px] w-full mb-12">
-          <img src={spaCover} alt="Spa Banner Cover" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={spaCover || null} alt="Spa Banner Cover" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-900/45 to-black/60" />
           <div className="absolute inset-0 flex flex-col justify-end pb-8 text-center px-4">
             <span className="text-xs font-bold tracking-[0.25em] text-gold-500 uppercase block mb-3 animate-fade-in">Holistic Healing</span>
@@ -344,7 +344,7 @@ export default function ServiceViews({ view, onBookNow, currency }: ServiceViews
       <div className="pb-24 bg-neutral-950 text-white min-h-screen animate-fade-in">
         {/* Banner Hero Cover */}
         <div className="relative h-[40vh] min-h-[300px] w-full mb-12">
-          <img src={carsCover} alt="Cars Banner Cover" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={carsCover || null} alt="Cars Banner Cover" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-900/45 to-black/60" />
           <div className="absolute inset-0 flex flex-col justify-end pb-8 text-center px-4">
             <span className="text-xs font-bold tracking-[0.25em] text-gold-500 uppercase block mb-3 animate-fade-in">Prestige Fleet</span>

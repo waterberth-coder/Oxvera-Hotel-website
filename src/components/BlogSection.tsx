@@ -178,7 +178,7 @@ export default function BlogSection() {
 
             <div className="aspect-video w-full rounded-md overflow-hidden border border-neutral-900 shadow-2xl">
               <img 
-                src={selectedPost.image} 
+                src={selectedPost.image || null} 
                 alt={selectedPost.title} 
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
@@ -283,7 +283,7 @@ export default function BlogSection() {
                   >
                     <div className="lg:col-span-7 aspect-[16/10] rounded overflow-hidden border border-neutral-800 shadow-xl relative">
                       <img 
-                        src={featuredPost.image} 
+                        src={featuredPost.image || null} 
                         alt={featuredPost.title} 
                         className="w-full h-full object-cover group-hover:scale-[1.02] transition-all duration-700"
                         referrerPolicy="no-referrer"
@@ -334,7 +334,7 @@ export default function BlogSection() {
                         <div>
                           <div className="aspect-[16/10] rounded-t overflow-hidden border-b border-neutral-900 relative">
                             <img 
-                              src={post.image} 
+                              src={post.image || null} 
                               alt={post.title} 
                               className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
                               referrerPolicy="no-referrer"

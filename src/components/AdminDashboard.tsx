@@ -316,6 +316,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         const rSnapshot = await getDocs(collection(db, 'rooms'));
         if (!rSnapshot.empty) {
           setRooms(rSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Room)));
+        } else {
+          for (const room of INITIAL_ROOMS) {
+            await setDoc(doc(db, 'rooms', room.id), room);
+          }
+          setRooms(INITIAL_ROOMS);
         }
 
         // Fetch bookings
@@ -363,6 +368,9 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         if (!mSnapshot.empty) {
           setMenuItemsAdmin(mSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MenuItem)));
         } else {
+          for (const item of INITIAL_MENU) {
+            await setDoc(doc(db, 'menu_items', item.id), item);
+          }
           setMenuItemsAdmin(INITIAL_MENU);
         }
 
@@ -371,6 +379,9 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         if (!sSnapshot.empty) {
           setSpaServicesAdmin(sSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SpaService)));
         } else {
+          for (const service of DEFAULT_SPA_SERVICES) {
+            await setDoc(doc(db, 'spa_services', service.id), service);
+          }
           setSpaServicesAdmin(DEFAULT_SPA_SERVICES);
         }
 
@@ -379,6 +390,9 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         if (!fSnapshot.empty) {
           setFleetItemsAdmin(fSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CarService)));
         } else {
+          for (const car of INITIAL_FLEET) {
+            await setDoc(doc(db, 'fleet_items', car.id), car);
+          }
           setFleetItemsAdmin(INITIAL_FLEET);
         }
 
@@ -395,6 +409,9 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         if (!gSnapshot.empty) {
           setGalleryItemsAdmin(gSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GalleryItem)));
         } else {
+          for (const item of INITIAL_GALLERY) {
+            await setDoc(doc(db, 'gallery', item.id), item);
+          }
           setGalleryItemsAdmin(INITIAL_GALLERY);
         }
 
@@ -505,7 +522,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     try {
       const rRef = doc(db, 'rooms', editingRoom.id);
       const { id, ...payload } = editingRoom;
-      await updateDoc(rRef, payload);
+      await setDoc(rRef, payload, { merge: true });
       setRooms(prev => prev.map(r => r.id === editingRoom.id ? editingRoom : r));
       alert('Room details updated in PMS.');
       setEditingRoom(null);
@@ -599,7 +616,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     try {
       const ref = doc(db, 'menu_items', editingMenuItem.id);
       const { id, ...payload } = editingMenuItem;
-      await updateDoc(ref, payload);
+      await setDoc(ref, payload, { merge: true });
       setMenuItemsAdmin(prev => prev.map(m => m.id === editingMenuItem.id ? editingMenuItem : m));
       alert('Menu item updated successfully!');
       setEditingMenuItem(null);
@@ -647,7 +664,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     try {
       const ref = doc(db, 'spa_services', editingSpaService.id);
       const { id, ...payload } = editingSpaService;
-      await updateDoc(ref, payload);
+      await setDoc(ref, payload, { merge: true });
       setSpaServicesAdmin(prev => prev.map(s => s.id === editingSpaService.id ? editingSpaService : s));
       alert('Spa service updated successfully!');
       setEditingSpaService(null);
@@ -695,7 +712,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     try {
       const ref = doc(db, 'fleet_items', editingFleetItem.id);
       const { id, ...payload } = editingFleetItem;
-      await updateDoc(ref, payload);
+      await setDoc(ref, payload, { merge: true });
       setFleetItemsAdmin(prev => prev.map(f => f.id === editingFleetItem.id ? editingFleetItem : f));
       alert('Vehicle updated successfully!');
       setEditingFleetItem(null);
@@ -720,7 +737,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const handleToggleRoomAvailability = async (roomId: string, currentStatus: boolean) => {
     try {
       const roomRef = doc(db, 'rooms', roomId);
-      await updateDoc(roomRef, { isAvailable: !currentStatus });
+      await setDoc(roomRef, { isAvailable: !currentStatus }, { merge: true });
       setRooms(prev => prev.map(r => r.id === roomId ? { ...r, isAvailable: !currentStatus } : r));
       alert(`Suite availability toggled to ${!currentStatus ? 'Available' : 'Booked/Unavailable'}!`);
     } catch (err) {
@@ -747,7 +764,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     if (!newUrl) return;
     try {
       const docRef = doc(db, 'spa_services', serviceId);
-      await updateDoc(docRef, { image: newUrl });
+      await setDoc(docRef, { image: newUrl }, { merge: true });
       setSpaServicesAdmin(prev => prev.map(s => s.id === serviceId ? { ...s, image: newUrl } : s));
       alert('Spa service image updated successfully!');
     } catch (err) {
@@ -760,7 +777,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     if (!newUrl) return;
     try {
       const docRef = doc(db, 'fleet_items', carId);
-      await updateDoc(docRef, { image: newUrl });
+      await setDoc(docRef, { image: newUrl }, { merge: true });
       setFleetItemsAdmin(prev => prev.map(f => f.id === carId ? { ...f, image: newUrl } : f));
       alert('Vehicle image updated successfully!');
     } catch (err) {
@@ -1971,7 +1988,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-neutral-950 rounded border border-neutral-800">
                     <div className="w-32 h-16 bg-neutral-900 rounded flex items-center justify-center border border-neutral-800 shrink-0">
                       {globalSettings.logoUrl ? (
-                        <img src={globalSettings.logoUrl} alt="Hotel Logo" className="max-w-full max-h-full object-contain" />
+                        <img src={globalSettings.logoUrl || null} alt="Hotel Logo" className="max-w-full max-h-full object-contain" />
                       ) : (
                         <span className="text-gold-500 font-serif font-bold text-lg">OXVERA</span>
                       )}
@@ -2025,7 +2042,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                       ]).map((slide, idx, arr) => (
                         <div key={idx} className="p-4 bg-neutral-900 rounded border border-neutral-800 grid grid-cols-1 md:grid-cols-12 gap-4">
                           <div className="md:col-span-3 space-y-2">
-                            <img src={slide.image} alt="Slide Preview" className="w-full aspect-video rounded object-cover border border-neutral-800" />
+                            <img src={slide.image || null} alt="Slide Preview" className="w-full aspect-video rounded object-cover border border-neutral-800" />
                             <ImageUploader 
                               value={slide.image} 
                               onChange={(url) => {
@@ -2137,7 +2154,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                     <div className="p-4 bg-neutral-950 rounded border border-neutral-800 flex flex-col justify-between">
                       <div>
                         <h4 className="font-bold text-white uppercase tracking-wider text-[10px] mb-3">Dining & Cuisine Banner</h4>
-                        <img src={diningCoverUrl} alt="Dining Banner Cover" className="w-full aspect-video rounded object-cover border border-neutral-800 mb-4" />
+                        <img src={diningCoverUrl || null} alt="Dining Banner Cover" className="w-full aspect-video rounded object-cover border border-neutral-800 mb-4" />
                       </div>
                       <ImageUploader value={diningCoverUrl} onChange={(url) => handleUpdateDiningCover(url)} />
                     </div>
@@ -2146,7 +2163,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                     <div className="p-4 bg-neutral-950 rounded border border-neutral-800 flex flex-col justify-between">
                       <div>
                         <h4 className="font-bold text-white uppercase tracking-wider text-[10px] mb-3">Spa & Wellness Banner</h4>
-                        <img src={spaCoverUrl} alt="Spa Banner Cover" className="w-full aspect-video rounded object-cover border border-neutral-800 mb-4" />
+                        <img src={spaCoverUrl || null} alt="Spa Banner Cover" className="w-full aspect-video rounded object-cover border border-neutral-800 mb-4" />
                       </div>
                       <ImageUploader value={spaCoverUrl} onChange={(url) => handleUpdateSpaCover(url)} />
                     </div>
@@ -2155,7 +2172,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                     <div className="p-4 bg-neutral-950 rounded border border-neutral-800 flex flex-col justify-between">
                       <div>
                         <h4 className="font-bold text-white uppercase tracking-wider text-[10px] mb-3">Executive Fleet Banner</h4>
-                        <img src={carsCoverUrl} alt="Fleet Banner Cover" className="w-full aspect-video rounded object-cover border border-neutral-800 mb-4" />
+                        <img src={carsCoverUrl || null} alt="Fleet Banner Cover" className="w-full aspect-video rounded object-cover border border-neutral-800 mb-4" />
                       </div>
                       <ImageUploader value={carsCoverUrl} onChange={(url) => handleUpdateCarsCover(url)} />
                     </div>
@@ -2179,7 +2196,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                       
                       <div className="aspect-video w-full rounded overflow-hidden border border-neutral-800 mb-4 bg-neutral-950">
                         <img 
-                          src={aboutForm.image} 
+                          src={aboutForm.image || null} 
                           alt="About Us current" 
                           className="w-full h-full object-cover" 
                           referrerPolicy="no-referrer"
@@ -2386,7 +2403,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                           {galleryItemsAdmin.map((item) => (
                             <div key={item.id} className="p-3 bg-neutral-950 rounded border border-neutral-800 flex gap-3 relative group">
                               <img 
-                                src={item.url} 
+                                src={item.url || null} 
                                 alt={item.altText} 
                                 className="w-20 h-16 object-cover rounded border border-neutral-800 shrink-0"
                                 referrerPolicy="no-referrer"

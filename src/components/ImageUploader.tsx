@@ -74,12 +74,35 @@ export default function ImageUploader({ value, onChange, label, className = '' }
     setUploading(true);
 
     try {
-      // Instantly compress and convert to lightweight optimized Base64 (100% reliable, zero network timeouts)
+      // Instantly compress and convert to lightweight optimized Base64 (under 30KB)
       const base64Url = await compressToDataUrl(file);
+
+      try {
+        // Attempt to upload to the server's filesystem for ultra-fast, lightweight URLs in Firestore
+        const response = await fetch('/api/upload-base64', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ base64Data: base64Url }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.url) {
+            onChange(result.url);
+            return;
+          }
+        }
+      } catch (uploadErr) {
+        console.warn('Server upload failed, falling back to local compressed Base64 data:', uploadErr);
+      }
+
+      // Fallback: use the highly compressed Base64 URL directly
       onChange(base64Url);
     } catch (err: any) {
       console.error('Error processing image:', err);
-      setError('Failed to process image file.');
+      setError('Failed to process and attach image file.');
     } finally {
       setUploading(false);
     }

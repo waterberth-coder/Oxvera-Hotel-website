@@ -1,5 +1,4 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import Stripe from "stripe";
@@ -19,11 +18,63 @@ async function startServer() {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   }
 
-  app.use(express.json());
+  // CORS middleware to allow requests from any frontend domain
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
+  app.use(express.json({ limit: "50mb" })); // Support large base64 uploads
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   // API Routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // Base64 upload endpoint to optimize Firestore document sizes and boost site performance
+  app.post("/api/upload-base64", async (req, res) => {
+    try {
+      const { base64Data } = req.body;
+      if (!base64Data) {
+        return res.status(400).json({ error: "Missing image data" });
+      }
+
+      const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (!matches || matches.length !== 3) {
+        return res.status(400).json({ error: "Invalid base64 format" });
+      }
+
+      const imageBuffer = Buffer.from(matches[2], 'base64');
+      const extension = matches[1].split('/')[1] || 'jpg';
+
+      // Ensure uploads directory exists
+      const fs = await import("fs");
+      const uploadsDir = path.join(process.cwd(), "uploads");
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${extension}`;
+      const filePath = path.join(uploadsDir, uniqueFilename);
+
+      fs.writeFileSync(filePath, imageBuffer);
+
+      // Construct absolute public URL
+      const host = req.get('host');
+      const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : req.protocol;
+      const url = `${protocol}://${host}/uploads/${uniqueFilename}`;
+
+      return res.json({ success: true, url });
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      return res.status(500).json({ error: err.message });
+    }
   });
 
   app.post("/api/send-email-receipt", (req, res) => {
@@ -87,6 +138,7 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

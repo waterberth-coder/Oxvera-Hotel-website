@@ -110,7 +110,7 @@ export default function GallerySection() {
               className="group relative rounded overflow-hidden aspect-[4/3] cursor-pointer border border-neutral-800/80 hover:border-gold-500/25 transition-all duration-500 shadow-lg shadow-black/40"
             >
               <img
-                src={item.url}
+                src={item.url || null}
                 alt={item.altText}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"
@@ -159,7 +159,7 @@ export default function GallerySection() {
           {/* Image */}
           <div className="max-w-4xl max-h-[75vh] relative flex flex-col items-center">
             <img
-              src={galleryItems[lightboxIndex].url}
+              src={galleryItems[lightboxIndex].url || null}
               alt={galleryItems[lightboxIndex].altText}
               className="max-w-full max-h-[70vh] object-contain rounded border border-gold-500/10 shadow-2xl"
               referrerPolicy="no-referrer"
