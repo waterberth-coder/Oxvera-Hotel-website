@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, CheckCircle, AlertTriangle, Loader2, Link2 } from 'lucide-react';
+import { getApiUrl } from '../lib/api';
 
 interface ImageUploaderProps {
   value: string;
@@ -77,9 +78,33 @@ export default function ImageUploader({ value, onChange, label, className = '' }
       // Instantly compress and convert to lightweight optimized Base64 (under 30KB)
       const base64Url = await compressToDataUrl(file);
 
+      // Attempt 1: Upload directly to Firebase Storage for production-grade, scale-free asset hosting
+      try {
+        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+        const { storage } = await import('../lib/firebase');
+        if (storage) {
+          const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${file.name}`;
+          const storageRef = ref(storage, `hotel_images/${uniqueFilename}`);
+          
+          // Convert base64 back to a blob for Firebase Storage upload to save bandwidth and keep format binary
+          const responseBlob = await fetch(base64Url);
+          const blob = await responseBlob.blob();
+          
+          const uploadResult = await uploadBytes(storageRef, blob);
+          const downloadUrl = await getDownloadURL(uploadResult.ref);
+          if (downloadUrl) {
+            onChange(downloadUrl);
+            return;
+          }
+        }
+      } catch (storageErr) {
+        console.warn('Firebase Storage upload failed (make sure Storage is enabled in Firebase Console):', storageErr);
+      }
+
+      // Attempt 2: Upload to the custom backend server's filesystem
       try {
         // Attempt to upload to the server's filesystem for ultra-fast, lightweight URLs in Firestore
-        const response = await fetch('/api/upload-base64', {
+        const response = await fetch(getApiUrl('/api/upload-base64'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -92,13 +117,17 @@ export default function ImageUploader({ value, onChange, label, className = '' }
           if (result.success && result.url) {
             onChange(result.url);
             return;
+          } else {
+            console.warn('Upload endpoint response indicated failure, falling back to Base64:', result);
           }
+        } else {
+          console.warn('Upload endpoint returned non-OK status:', response.status);
         }
       } catch (uploadErr) {
         console.warn('Server upload failed, falling back to local compressed Base64 data:', uploadErr);
       }
 
-      // Fallback: use the highly compressed Base64 URL directly
+      // Attempt 3 / Fallback: use the highly compressed Base64 URL directly
       onChange(base64Url);
     } catch (err: any) {
       console.error('Error processing image:', err);

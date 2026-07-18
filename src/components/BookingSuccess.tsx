@@ -4,6 +4,7 @@ import { CheckCircle, Home, Calendar, CreditCard, Hotel, DollarSign, Loader2, Pr
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { formatPrice, CurrencyType } from '../utils/currency';
+import { getApiUrl } from '../lib/api';
 
 interface RoomData {
   name: string;
@@ -99,7 +100,7 @@ export default function BookingSuccess({ currency = 'NGN' }: BookingSuccessProps
     setEmailSuccess(false);
 
     try {
-      const response = await fetch('/api/send-email-receipt', {
+      const response = await fetch(getApiUrl('/api/send-email-receipt'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

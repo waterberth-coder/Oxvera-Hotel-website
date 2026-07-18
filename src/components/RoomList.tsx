@@ -9,6 +9,7 @@ import { db } from '../lib/firebase';
 import { Room } from '../types';
 import { INITIAL_ROOMS } from '../constants/initialData';
 import { formatPrice, CurrencyType } from '../utils/currency';
+import { getApiUrl } from '../lib/api';
 
 interface RoomListProps {
   user: User | null;
@@ -109,7 +110,7 @@ export default function RoomList({ user, searchParams, currency = 'NGN' }: RoomL
 
     setLoadingId(room.id);
     try {
-      const response = await fetch('/api/create-checkout-session', {
+      const response = await fetch(getApiUrl('/api/create-checkout-session'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
