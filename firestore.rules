@@ -25,7 +25,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == "waterberth@gmail.com"
+        request.auth.token.email.lower() == "waterberth@gmail.com"
         || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
@@ -95,7 +95,7 @@ service cloud.firestore {
     // --- Rooms ---
     match /rooms/{roomId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidRoom(request.resource.data) && isValidId(roomId);
+      allow write: if isAdmin();
     }
 
     // --- Bookings ---
@@ -115,55 +115,55 @@ service cloud.firestore {
     // --- Coupons ---
     match /coupons/{couponId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidCoupon(request.resource.data) && isValidId(couponId);
+      allow write: if isAdmin();
     }
 
     // --- Gallery ---
     match /gallery/{itemId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidGalleryItem(request.resource.data) && isValidId(itemId);
+      allow write: if isAdmin();
     }
 
     // --- Fine Dining Menu ---
     match /menu_items/{itemId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidMenuItem(request.resource.data) && isValidId(itemId);
+      allow write: if isAdmin();
     }
 
     // --- Spa Services ---
     match /spa_services/{serviceId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidId(serviceId);
+      allow write: if isAdmin();
     }
 
     // --- Transit Fleet ---
     match /fleet_items/{carId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidCarService(request.resource.data) && isValidId(carId);
+      allow write: if isAdmin();
     }
 
     // --- Global Site Content ---
     match /site_content/{id} {
       allow read: if true;
-      allow write: if isAdmin() && isValidId(id);
+      allow write: if isAdmin();
     }
 
     // --- Testimonials ---
     match /testimonials/{id} {
       allow read: if true;
-      allow write: if isAdmin() && isValidTestimonial(request.resource.data) && isValidId(id);
+      allow write: if isAdmin();
     }
 
     // --- Settings ---
     match /settings/{id} {
       allow read: if true;
-      allow write: if isAdmin() && isValidId(id);
+      allow write: if isAdmin();
     }
 
     // --- Blogs ---
     match /blogs/{blogId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidBlog(request.resource.data) && isValidId(blogId);
+      allow write: if isAdmin();
     }
   }
 }
